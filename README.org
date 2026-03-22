@@ -93,7 +93,7 @@ Due to =janet -k= stopping at the first promoted warning, not all diagnostics wo
 
 flymake-janet runs a two-phase check on every buffer change:
 
-1. A bundled Janet script (=flymake-janet-check.janet=) reads the buffer from stdin and compiles each top-level form individually,
+1. A bundled Janet script (=flymake-janet-compile-all.janet=) reads the buffer from stdin and compiles each top-level form individually,
    continuing past errors. This collects all compile errors across the whole file (but does not return any warnings).
 
 2. =janet -k= is then run on the buffer with the error lines blanked out to receive a list of warnings.

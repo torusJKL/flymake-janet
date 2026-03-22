@@ -59,7 +59,10 @@ Corresponds to `janet -k -x LEVEL'. Levels in increasing strictness:
           (lambda (proc _event)
             (when (memq (process-status proc) '(exit signal))
               (unwind-protect
-                  (with-current-buffer (process-buffer proc)
+                  (if (not (with-current-buffer source
+                             (eq proc flymake-janet--proc)))
+                      (flymake-log :warning "Obsolete flymake-janet process %s" proc)
+                    (with-current-buffer (process-buffer proc)
                     (goto-char (point-min))
                     (let (diags)
                       (while (re-search-forward
@@ -69,10 +72,8 @@ Corresponds to `janet -k -x LEVEL'. Levels in increasing strictness:
                                (severity (if (string-prefix-p "compile warning" full-msg)
                                              :warning
                                            :error))
-                               (msg (if (eq severity :warning)
-                                        (replace-regexp-in-string
-                                         "^compile warning ([^)]+): " "" full-msg)
-                                      full-msg))
+                               (msg (replace-regexp-in-string
+                                     "^compile \\(?:warning ([^)]+)\\|error\\): " "" full-msg))
                                (line (string-to-number (match-string 1)))
                                (col  (string-to-number (match-string 2)))
                                ;; Adjust col if 0 → use 1 to avoid invalid pos
@@ -82,9 +83,9 @@ Corresponds to `janet -k -x LEVEL'. Levels in increasing strictness:
                                (end (cdr pos)))
                           (push (flymake-make-diagnostic
                                  source beg end severity
-                                 (format "Janet: %s" msg))
+                                 msg)
                                 diags)))
-                      (funcall report-fn (nreverse diags))))
+                      (funcall report-fn (nreverse diags)))))
                 (kill-buffer (process-buffer proc)))))))
     (setq flymake-janet--proc
           (make-process
@@ -92,15 +93,12 @@ Corresponds to `janet -k -x LEVEL'. Levels in increasing strictness:
            :noquery t
            :connection-type 'pipe
            :buffer buf
-           :command (list "sh" "-c"
-                          (concat (mapconcat #'shell-quote-argument
-                                             (append '("janet" "-k")
-                                                     (when flymake-janet-warn-level
-                                                       (list "-w" (symbol-name flymake-janet-warn-level)))
-                                                     (when flymake-janet-error-level
-                                                       (list "-x" (symbol-name flymake-janet-error-level))))
-                                             " ")
-                                  " 2>&1"))
+           :command (append '("janet" "-k")
+                           (when flymake-janet-warn-level
+                             (list "-w" (symbol-name flymake-janet-warn-level)))
+                           (when flymake-janet-error-level
+                             (list "-x" (symbol-name flymake-janet-error-level))))
+           :stderr buf
            :sentinel sentinel))
     ;; Pipe buffer contents to janet -k stdin
     (process-send-region flymake-janet--proc (point-min) (point-max))
@@ -110,7 +108,9 @@ Corresponds to `janet -k -x LEVEL'. Levels in increasing strictness:
 ;;;###autoload
 (defun flymake-janet-setup ()
   "Enable Janet Flymake backend in the current buffer."
-  (add-hook 'flymake-diagnostic-functions #'flymake-janet--backend nil t))
+  (add-hook 'flymake-diagnostic-functions #'flymake-janet--backend nil t)
+  (when flymake-mode
+    (flymake-start)))
 
 (provide 'flymake-janet)
 ;;; flymake-janet.el ends here

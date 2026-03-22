@@ -45,6 +45,11 @@ Corresponds to `janet -k -x LEVEL'. Levels in increasing strictness:
   :type '(choice (const relaxed) (const normal) (const strict) (const nil))
   :group 'flymake)
 
+(defconst flymake-janet--script
+  (expand-file-name "flymake-janet-check.janet"
+                    (file-name-directory (or load-file-name buffer-file-name)))
+  "Path to the Janet checker script bundled with flymake-janet.")
+
 (defvar-local flymake-janet--proc nil
   "Current flymake-janet process for the buffer.")
 
@@ -93,7 +98,7 @@ Corresponds to `janet -k -x LEVEL'. Levels in increasing strictness:
            :noquery t
            :connection-type 'pipe
            :buffer buf
-           :command (append '("janet" "-k")
+           :command (append (list "janet" flymake-janet--script)
                            (when flymake-janet-warn-level
                              (list "-w" (symbol-name flymake-janet-warn-level)))
                            (when flymake-janet-error-level

@@ -1,0 +1,103 @@
+#+title: flymake-janet
+#+author: Gal Buki
+#+language: en
+
+A Flymake backend for the [[https://janet-lang.org][Janet]] programming language. \\
+It uses Janet's built-in linter and provides compile errors and lint warnings to Flymake.
+
+* Requirements
+
+- Emacs 26.1 or later
+- The =janet= binary on your =PATH=
+- Either [[https://github.com/ALSchwalm/janet-mode][janet-mode]] or [[https://github.com/sogaiu/janet-ts-mode][janet-ts-mode]]
+
+* Installation
+
+** Manual
+
+Clone the repository and add it to your load path:
+
+#+begin_src emacs-lisp
+  (add-to-list 'load-path "/path/to/flymake-janet")
+  (require 'flymake-janet)
+#+end_src
+
+** use-package with :vc (Emacs 29+)
+
+#+begin_src emacs-lisp
+  (use-package flymake-janet
+    :vc (:url "https://github.com/torusjkl/flymake-janet")
+    :custom
+    (flymake-janet-warn-level 'strict)
+    :hook
+    (janet-mode . flymake-mode)
+    (janet-mode . flymake-janet-setup))
+#+end_src
+
+* Setup
+
+Call =flymake-janet-setup= in the buffer where you want the backend active.
+The typical approach is to add it to =janet-mode-hook=:
+
+#+begin_src emacs-lisp
+  (add-hook 'janet-mode-hook #'flymake-janet-setup)
+#+end_src
+
+This adds the backend and starts Flymake if it is already running.
+You still need to enable Flymake itself — either globally or per hook:
+
+#+begin_src emacs-lisp
+  (add-hook 'janet-mode-hook #'flymake-mode)
+#+end_src
+
+** Using with Eglot
+
+If you use Eglot with a Janet LSP server, Eglot takes over Flymake by default and will disable other backends.
+To keep flymake-janet running alongside Eglot, tell Eglot to stay out of Flymake and activate the backend via =eglot-managed-mode-hook=:
+
+#+begin_src emacs-lisp
+  (add-to-list 'eglot-stay-out-of 'flymake)
+  (add-hook 'eglot-managed-mode-hook #'flymake-janet-setup)
+#+end_src
+
+Note that =eglot-stay-out-of= is a global list.
+It affects all languages managed by Eglot, not just Janet. To undo this, remove the entry explicitly:
+
+#+begin_src emacs-lisp
+  (setq eglot-stay-out-of (delete 'flymake eglot-stay-out-of))
+#+end_src
+
+* Settings
+
+** Warn level
+
+Controls the lint level passed to =janet -k -w LEVEL=.
+Warnings at or below this level are reported.
+Default is =normal=.
+
+| Value      | Meaning                          |
+|------------+----------------------------------|
+| ='relaxed= | Only the most important warnings |
+| ='normal=  | Standard warnings (default)      |
+| ='strict=  | All warnings, including pedantic |
+| =nil=      | Omit the =-w= flag entirely      |
+
+#+begin_src emacs-lisp
+  (setopt flymake-janet-warn-level 'strict)
+#+end_src
+
+Note: Promoting lint warnings to errors (Janet's =-x= flag) is not supported.
+Due to =janet -k= stopping at the first promoted warning, not all diagnostics would be reported reliably.
+
+* How it works
+
+flymake-janet runs a two-phase check on every buffer change:
+
+1. A bundled Janet script (=flymake-janet-check.janet=) reads the buffer from stdin and compiles each top-level form individually,
+   continuing past errors. This collects all compile errors across the whole file (but does not return any warnings).
+
+2. =janet -k= is then run on the buffer with the error lines blanked out to receive a list of warnings.
+   This is necessary because =janet -k= stops at the first compile error,
+   so blanking those lines lets it reach the rest of the file and emit its lint warnings.
+
+The results of both passes are merged and reported to Flymake.

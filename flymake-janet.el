@@ -5,7 +5,7 @@
 ;; URL: https://github.com/torusjkl/flymake-janet
 ;; Version: 0.1.0
 ;; SPDX-License-Identifier: GPL-3.0-or-later
-;; Package-Requires: (emacs "30.0")
+;; Package-Requires: (emacs "26.1")
 
 ;;; License:
 
@@ -43,12 +43,6 @@ Corresponds to `janet -k -w LEVEL'. Levels in increasing strictness:
   :type '(choice (const relaxed) (const normal) (const strict) (const nil))
   :group 'flymake-janet)
 
-(defcustom flymake-janet-error-level nil
-  "Lint level at or below which Janet promotes warnings to errors.
-Corresponds to `janet -k -x LEVEL'. Levels in increasing strictness:
-`relaxed', `normal', `strict'. Set to nil to omit the flag (no lint errors)."
-  :type '(choice (const relaxed) (const normal) (const strict) (const nil))
-  :group 'flymake)
 
 (defconst flymake-janet--script
   (expand-file-name "flymake-janet-check.janet"
@@ -117,11 +111,8 @@ on the source with those lines blanked to collect warnings."
   (when (process-live-p flymake-janet--proc-jk)
     (kill-process flymake-janet--proc-jk))
   (let* ((source (current-buffer))
-         (lint-args (append
-                     (when flymake-janet-warn-level
-                       (list "-w" (symbol-name flymake-janet-warn-level)))
-                     (when flymake-janet-error-level
-                       (list "-x" (symbol-name flymake-janet-error-level)))))
+         (lint-args (when flymake-janet-warn-level
+                      (list "-w" (symbol-name flymake-janet-warn-level))))
          (buf-script (generate-new-buffer " *flymake-janet*")))
     (setq flymake-janet--proc
           (make-process

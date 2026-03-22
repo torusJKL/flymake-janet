@@ -5,7 +5,7 @@
 ;; URL: https://github.com/torusjkl/flymake-janet
 ;; Version: 0.1.0
 ;; SPDX-License-Identifier: GPL-3.0-or-later
-;; Package-Requires: (emacs "26.1")
+;; Package-Requires: ((emacs "26.1"))
 
 ;;; License:
 
@@ -172,9 +172,9 @@ on the source with those lines blanked to collect warnings."
 ;;;###autoload
 (defun flymake-janet-setup ()
   "Enable Janet Flymake backend in the current buffer."
-  (add-hook 'flymake-diagnostic-functions #'flymake-janet--backend nil t)
-  (when flymake-mode
-    (flymake-start)))
+  (if (executable-find "janet")
+      (add-hook 'flymake-diagnostic-functions #'flymake-janet--backend nil t)
+    (message "[flymake-janet] Not enabled: `janet' not found in $PATH")))
 
 (provide 'flymake-janet)
 ;;; flymake-janet.el ends here

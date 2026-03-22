@@ -3,7 +3,7 @@
 ;; Copyright (C) 2026 Gal Buki
 ;; Author: Gal Buki <jkl@torus.ch>
 ;; URL: https://github.com/torusjkl/flymake-janet
-;; Version: 0.1.0
+;; Version: 0.1.1
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 ;; Package-Requires: ((emacs "26.1"))
 
@@ -45,7 +45,7 @@ Corresponds to `janet -k -w LEVEL'. Levels in increasing strictness:
 
 
 (defconst flymake-janet--script
-  (expand-file-name "flymake-janet-check.janet"
+  (expand-file-name "flymake-janet-compile-all.janet"
                     (file-name-directory (or load-file-name buffer-file-name)))
   "Path to the Janet checker script bundled with flymake-janet.")
 

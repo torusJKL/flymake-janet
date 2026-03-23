@@ -1,5 +1,13 @@
 #!/usr/bin/env janet
-# flymake-janet-compile-all.janet
+# flymake-janet-compile-all.janet — part of flymake-janet
+# Version: 0.2.0
+# Copyright (C) 2026 Gal Buki
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
 # Collects all compile errors, warnings, and parse errors in one pass
 # using run-context callbacks.
@@ -9,30 +17,30 @@
 
 (var warn-level nil)
 (var error-level nil)
-(def args (dyn :args))
+(def cli-args (dyn :args))
 
 (var i 1)
-(while (< i (length args))
-  (def arg (args i))
+(while (< i (length cli-args))
+  (def arg (cli-args i))
   (cond
-    (= arg "-w") (do (set warn-level (keyword (args (+ i 1)))) (+= i 2))
-    (= arg "-x") (do (set error-level (keyword (args (+ i 1)))) (+= i 2))
+    (= arg "-w") (do (set warn-level (keyword (cli-args (+ i 1)))) (+= i 2))
+    (= arg "-x") (do (set error-level (keyword (cli-args (+ i 1)))) (+= i 2))
     (+= i 1)))
 
 (when warn-level  (setdyn :lint-warn  warn-level))
 (when error-level (setdyn :lint-error error-level))
 
-(def src (string (file/read stdin :all)))
+(def stdin-src (string (file/read stdin :all)))
 
 # Definition forms that are safe to execute so later forms can reference them
-(def- def-forms
+(def- flymake-def-forms
   {'defn true 'defn- true 'varfn true
    'defmacro true 'defmacro- true
    'def true 'def- true 'var true 'var- true
    'defglobal true 'varglobal true})
 
-(defn- safe-evaluator [thunk source _env _where]
-  (when (and (tuple? source) (def-forms (source 0)))
+(defn- flymake-safe-evaluator [thunk source _env _where]
+  (when (and (tuple? source) (flymake-def-forms (source 0)))
     (try (thunk) ([_] nil))))
 
 (var had-error false)
@@ -43,7 +51,7 @@
    (fn [buf _]
      (when (not src-sent)
        (set src-sent true)
-       (buffer/push-string buf src)
+       (buffer/push-string buf stdin-src)
        (buffer/push-string buf "\n")))
 
    :on-compile-error
@@ -64,7 +72,7 @@
      (eprin (string/format "error: stdin:%d:%d: parse error: %s\n"
                            (or line 1) (or col 1) (parser/error p))))
 
-   :evaluator safe-evaluator
+   :evaluator flymake-safe-evaluator
    :source "stdin"})
 
 (os/exit (if had-error 1 0))

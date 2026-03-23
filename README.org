@@ -134,3 +134,6 @@ On every buffer change, flymake-janet runs a bundled Janet script (=flymake-jane
 and uses Janet's =run-context= with dedicated callbacks to collect parse errors, compile errors, and lint warnings in a single pass. @@html:<br>@@
 Definition forms (=defn=, =def=, =defmacro=, ...) are executed so that later forms in the file can reference them. @@html:<br>@@
 All other forms are skipped to avoid side effects.
+
+* Credits
+- [[https://github.com/CFiggers/janet-lsp][janet-lsp]] for the [[https://janet-lang.org/api/index.html#run-context][run-context]] parsing inspiration

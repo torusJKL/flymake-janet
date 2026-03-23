@@ -3,7 +3,7 @@
 ;; Copyright (C) 2026 Gal Buki
 ;; Author: Gal Buki <jkl@torus.ch>
 ;; URL: https://github.com/torusjkl/flymake-janet
-;; Version: 0.1.1
+;; Version: 0.2.0
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 ;; Package-Requires: ((emacs "26.1"))
 
@@ -45,10 +45,17 @@ Corresponds to `-w LEVEL'. Levels in increasing strictness:
 
 (defcustom flymake-janet-error-level nil
   "Lint level at or below which Janet promotes warnings to errors.
-Corresponds to `-x LEVEL'. Set to nil to omit the flag."
+Corresponds to `-x LEVEL'. Levels in increasing strictness:
+`relaxed', `normal', `strict'. Set to nil to omit the flag."
   :type '(choice (const relaxed) (const normal) (const strict) (const nil))
   :group 'flymake-janet)
 
+
+(defcustom flymake-janet-message-strip-regexp
+  "^\\(?:compile\\|parse\\) \\(?:warning\\(?: ([^)]+)\\)?\\|error\\): "
+  "Regexp applied to the lint message, or nil to show messages as-is."
+  :type '(choice (const nil) regexp)
+  :group 'flymake-janet)
 
 (defconst flymake-janet--script
   (expand-file-name "flymake-janet-compile-all.janet"
@@ -69,14 +76,16 @@ Corresponds to `-x LEVEL'. Set to nil to omit the flag."
         (let* ((full-msg (match-string 3))
                (is-warning (string-prefix-p "compile warning" full-msg))
                (severity (if is-warning :warning :error))
-               (msg (replace-regexp-in-string
-                     "^compile \\(?:warning\\(?: ([^)]+)\\)?\\|error\\): " "" full-msg))
                (line    (string-to-number (match-string 1)))
                (col     (string-to-number (match-string 2)))
                (adj-col (if (zerop col) 1 col))
                (pos     (flymake-diag-region source line adj-col)))
           (push (flymake-make-diagnostic
-                 source (car pos) (cdr pos) severity msg)
+                 source (car pos) (cdr pos) severity
+                 (if flymake-janet-message-strip-regexp
+                     (replace-regexp-in-string
+                      flymake-janet-message-strip-regexp "" full-msg)
+                   full-msg))
                 diags))))
     (nreverse diags)))
 

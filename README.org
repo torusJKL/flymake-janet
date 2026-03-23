@@ -2,7 +2,7 @@
 #+author: Gal Buki
 #+language: en
 
-A Flymake backend for the [[https://janet-lang.org][Janet]] programming language. \\
+A Flymake backend for the [[https://janet-lang.org][Janet]] programming language. @@html:<br>@@
 It uses Janet's built-in linter and provides compile errors and lint warnings to Flymake.
 
 * Requirements
@@ -37,14 +37,14 @@ Clone the repository and add it to your load path:
 
 * Setup
 
-Call =flymake-janet-setup= in the buffer where you want the backend active. \\
+Call =flymake-janet-setup= in the buffer where you want the backend active. @@html:<br>@@
 The typical approach is to add it to =janet-mode-hook=:
 
 #+begin_src emacs-lisp
   (add-hook 'janet-mode-hook #'flymake-janet-setup)
 #+end_src
 
-This adds the backend and starts Flymake if it is already running. \\
+This adds the backend and starts Flymake if it is already running. @@html:<br>@@
 You still need to enable Flymake itself — either globally or per hook:
 
 #+begin_src emacs-lisp
@@ -53,7 +53,7 @@ You still need to enable Flymake itself — either globally or per hook:
 
 ** Using with Eglot
 
-If you use Eglot with a Janet LSP server, Eglot takes over Flymake by default and will disable other backends. \\
+If you use Eglot with a Janet LSP server, Eglot takes over Flymake by default and will disable other backends. @@html:<br>@@
 To keep flymake-janet running alongside Eglot, remove Eglot's Flymake backend in Janet buffers and activate flymake-janet via =eglot-managed-mode-hook=:
 
 #+begin_src emacs-lisp
@@ -64,8 +64,8 @@ To keep flymake-janet running alongside Eglot, remove Eglot's Flymake backend in
                 (flymake-janet-setup))))
 #+end_src
 
-This is scoped to Janet buffers, so Eglot's Flymake integration continues to work normally for other languages. \\
-Note that this relies on =eglot-flymake-backend= being the name Eglot uses internally. \\
+This is scoped to Janet buffers, so Eglot's Flymake integration continues to work normally for other languages. @@html:<br>@@
+Note that this relies on =eglot-flymake-backend= being the name Eglot uses internally. @@html:<br>@@
 Note: this could break if a future Eglot version renames or restructures its Flymake integration.
 
 If you prefer a simpler but global approach, =eglot-stay-out-of= is Eglot's official API for this:
@@ -86,7 +86,7 @@ The above disables Eglot's Flymake integration for all languages. To undo it, re
 ** Warn level
 
 Controls the lint level passed to =-w LEVEL=.
-Warnings at or below this level are reported. \\
+Warnings at or below this level are reported. @@html:<br>@@
 Default is =normal=.
 
 | Value      | Meaning                          |
@@ -103,7 +103,7 @@ Default is =normal=.
 ** Error level
 
 Controls the lint level passed to =-x LEVEL=.
-Warnings at or below this level are promoted to errors. \\
+Warnings at or below this level are promoted to errors. @@html:<br>@@
 Default is =nil= (disabled).
 
 | Value      | Meaning                                  |
@@ -120,8 +120,8 @@ Default is =nil= (disabled).
 ** Message format
 
 By default, the =compile error:=, =compile warning:=, and =parse error:= prefixes are stripped from diagnostic messages,
-since the severity is already indicated by Flymake. \\
-The regex can be changed by setting =flymake-janet-message-strip-regexp=. \\
+since the severity is already indicated by Flymake. @@html:<br>@@
+The regex can be changed by setting =flymake-janet-message-strip-regexp=. @@html:<br>@@
 Set it to =nil= to show the full message text.
 
 #+begin_src emacs-lisp
@@ -131,6 +131,6 @@ Set it to =nil= to show the full message text.
 * How it works
 
 On every buffer change, flymake-janet runs a bundled Janet script (=flymake-janet-compile-all.janet=) that reads the buffer from stdin
-and uses Janet's =run-context= with dedicated callbacks to collect parse errors, compile errors, and lint warnings in a single pass. \\
-Definition forms (=defn=, =def=, =defmacro=, ...) are executed so that later forms in the file can reference them. \\
+and uses Janet's =run-context= with dedicated callbacks to collect parse errors, compile errors, and lint warnings in a single pass. @@html:<br>@@
+Definition forms (=defn=, =def=, =defmacro=, ...) are executed so that later forms in the file can reference them. @@html:<br>@@
 All other forms are skipped to avoid side effects.
